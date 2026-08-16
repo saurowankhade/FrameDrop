@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>recast — screen recording to MP4</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="head">
+      <h1>recast</h1>
+      <p class="sub">Turn a screen recording into a shareable MP4.</p>
+    </header>
+
+    <section class="card" id="uploader">
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a recording">
+        <input type="file" id="file" accept=".zip" hidden />
+        <p class="drop-title">Drop your recording here</p>
+        <p class="drop-hint">a <strong>.zip</strong> of your <code>.screenstudio</code> recording</p>
+        <button type="button" class="btn ghost" id="pick">Choose file</button>
+        <p class="chosen" id="chosen" hidden></p>
+      </div>
+
+      <details class="opts">
+        <summary>Options</summary>
+        <div class="opts-grid">
+          <label>Cursor
+            <select id="opt-cursor">
+              <option value="auto" selected>Auto</option>
+              <option value="on">On</option>
+              <option value="off">Off</option>
+            </select>
+          </label>
+          <label>Zoom effects
+            <select id="opt-zooms">
+              <option value="on" selected>On</option>
+              <option value="off">Off</option>
+            </select>
+          </label>
+          <label>Webcam
+            <select id="opt-webcam">
+              <option value="auto" selected>Auto</option>
+              <option value="on">On</option>
+              <option value="off">Off</option>
+            </select>
+          </label>
+          <label>Audio
+            <select id="opt-audio">
+              <option value="loudnorm" selected>Normalize</option>
+              <option value="voice">Voice cleanup</option>
+              <option value="none">Leave as-is</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <button type="button" class="btn primary" id="convert" disabled>Convert to MP4</button>
+
+      <div class="progress" id="progress" hidden>
+        <div class="bar"><span id="fill"></span></div>
+        <p class="status" id="status">Uploading…</p>
+      </div>
+
+      <div class="result" id="result" hidden>
+        <a class="btn primary" id="download" href="#">Download MP4</a>
+        <button type="button" class="btn ghost" id="again">Convert another</button>
+        <ul class="warn" id="warn"></ul>
+      </div>
+
+      <p class="error" id="error" hidden></p>
+    </section>
+
+    <details class="help">
+      <summary>How do I make the .zip?</summary>
+      <ol>
+        <li>Find your recording in <strong>Finder</strong> (it ends in <code>.screenstudio</code>).</li>
+        <li>Right-click it and choose <strong>Compress</strong>.</li>
+        <li>Drop the resulting <code>.zip</code> above.</li>
+      </ol>
+      <p class="muted">Your recording is a folder that macOS shows as a single file, so it must be
+        zipped before uploading. Files are deleted from the server automatically.</p>
+    </details>
+
+    <footer class="foot">
+      <span>Open source · MIT</span>
+    </footer>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

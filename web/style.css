@@ -1,0 +1,200 @@
+:root {
+  --bg: #ffffff;
+  --card: #ffffff;
+  --ink: #16181d;
+  --muted: #6b7280;
+  --line: #e3e6ea;
+  --line-strong: #cfd4da;
+  --accent: #2563eb;
+  --accent-ink: #ffffff;
+  --ok: #157347;
+  --err: #b42318;
+  --radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --card: #161a20;
+    --ink: #e8eaed;
+    --muted: #9aa1ab;
+    --line: #262b33;
+    --line-strong: #333a44;
+    --accent: #4f8cff;
+    --accent-ink: #0f1115;
+    --ok: #4ec98a;
+    --err: #ff6b60;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 48px 20px 40px;
+}
+
+.head { text-align: center; margin-bottom: 24px; }
+.head h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.sub { margin: 6px 0 0; color: var(--muted); }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.drop {
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius);
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.drop:hover, .drop:focus, .drop.over {
+  border-color: var(--accent);
+  outline: none;
+}
+.drop-title { margin: 0 0 4px; font-weight: 600; }
+.drop-hint { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+.chosen {
+  margin: 14px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  padding: 1px 5px;
+  background: var(--line);
+  border-radius: 5px;
+}
+
+.btn {
+  display: inline-block;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+}
+.btn.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  width: 100%;
+  margin-top: 18px;
+}
+.btn.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn.ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.opts { margin-top: 18px; }
+.opts summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 0;
+}
+.opts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+.opts-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.opts-grid select {
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  padding: 7px 8px;
+}
+
+.progress { margin-top: 18px; }
+.bar {
+  height: 8px;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+.status { margin: 10px 0 0; font-size: 14px; color: var(--muted); text-align: center; }
+
+.result { margin-top: 18px; text-align: center; }
+.result .btn.ghost { width: 100%; margin-top: 10px; }
+.warn {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  text-align: left;
+  font-size: 13px;
+  color: var(--muted);
+}
+.warn li { padding: 4px 0; border-top: 1px solid var(--line); }
+
+.error {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--err);
+  border-radius: 8px;
+  color: var(--err);
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+.help { margin-top: 22px; }
+.help summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+.help ol { margin: 12px 0; padding-left: 20px; }
+.help li { margin: 4px 0; }
+.muted { color: var(--muted); font-size: 13px; }
+
+.foot {
+  margin-top: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 460px) {
+  .opts-grid { grid-template-columns: 1fr; }
+}
