@@ -9,6 +9,7 @@ Serves the single-page frontend and a small JSON API:
 
 from __future__ import annotations
 
+import logging
 import os
 import shutil
 
@@ -25,6 +26,8 @@ from fastapi.staticfiles import StaticFiles
 
 from .engine import check_dependencies
 from .jobs import JobManager
+
+logger = logging.getLogger("framedrop")
 
 WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 
@@ -184,6 +187,9 @@ def preview_endpoint(
     try:
         image_path = jobs.preview(job, options)
     except Exception as exc:  # surface a readable error to the UI
+        # Log the full traceback server-side (Render logs) so the cause is
+        # visible without having to read the 422 response body.
+        logger.exception("preview failed for job %s", job_id)
         raise HTTPException(status_code=422, detail=str(exc))
     return FileResponse(
         image_path,

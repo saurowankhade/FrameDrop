@@ -412,7 +412,7 @@ def prepare(
         return " \\\n  ".join(parts)
 
     open(f"{work}/render_full.sh", "w").write(
-        f"""#!/bin/zsh
+        f"""#!/bin/bash
 set -e
 cd "{work}"
 {ffmpeg} -hide_banner -y \\
@@ -430,7 +430,7 @@ echo RENDER_EXIT=$?
     # preview. Grabbing one frame is fast; it shows background, screen size,
     # rounded corners, shadow, and the webcam bubble at its size/roundness.
     open(f"{work}/preview.sh", "w").write(
-        f"""#!/bin/zsh
+        f"""#!/bin/bash
 set -e
 cd "{work}"
 {ffmpeg} -hide_banner -y \\
@@ -464,7 +464,7 @@ echo PREVIEW_EXIT=$?
     tail = f"[cut]{CLEAN}[out]" if CLEAN else "[cut]anull[out]"
     achain.append(tail)
     open(f"{work}/audio_build.sh", "w").write(
-        f"""#!/bin/zsh
+        f"""#!/bin/bash
 set -e
 cd "{work}"
 {ffmpeg} -hide_banner -y -i "{voice_src}" {asrc2} \\
@@ -474,7 +474,7 @@ echo AUDIO_EXIT=$?
 """
     )
     open(f"{work}/mux.sh", "w").write(
-        f"""#!/bin/zsh
+        f"""#!/bin/bash
 set -e
 cd "{work}"
 {ffmpeg} -hide_banner -y -i video_only.mp4 -i voice.m4a \\

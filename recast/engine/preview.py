@@ -43,7 +43,7 @@ def render_preview(
     )
 
     script = os.path.join(work_dir, "preview.sh")
-    res = subprocess.run(["zsh", script], capture_output=True, text=True, cwd=work_dir)
+    res = subprocess.run(["bash", script], capture_output=True, text=True, cwd=work_dir)
     out = os.path.join(work_dir, "preview.jpg")
     if res.returncode != 0 or not os.path.isfile(out):
         err = (res.stderr or res.stdout or "").strip()

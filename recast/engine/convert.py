@@ -164,7 +164,7 @@ class Converter:
         if not os.path.isfile(script_path):
             raise FileNotFoundError(f"Missing generated script: {os.path.basename(script_path)}")
         res = subprocess.run(
-            ["zsh", script_path],
+            ["bash", script_path],
             capture_output=True,
             text=True,
             cwd=self.work_dir,
