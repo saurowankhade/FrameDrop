@@ -46,6 +46,22 @@ DEFAULTS = {
     "preset": "fast",
     "audio": "auto",
     "audio_cleanup": "loudnorm",
+    # User-adjustable presets. "auto" for camera/screen means "use the value from
+    # the recording's project"; the named sizes override it.
+    "camera_size": "auto",
+    "camera_roundness": "auto",
+    "screen_size": "auto",
+    "quality": "balanced",
+}
+
+# How the named option values map onto the numeric render parameters.
+CAMERA_SIZES = {"small": 0.16, "medium": 0.24, "large": 0.32}
+CAMERA_ROUNDNESS = {"square": 0.0, "rounded": 0.35, "circle": 1.0}
+SCREEN_SIZES = {"small": 0.70, "medium": 0.80, "large": 0.90}
+QUALITY = {
+    "high": {"crf": 18, "preset": "medium"},
+    "balanced": {"crf": 20, "preset": "fast"},
+    "small": {"crf": 26, "preset": "fast"},
 }
 
 
@@ -85,6 +101,11 @@ def prepare(
 ) -> dict:
     """Generate render assets and shell scripts. Returns the plan dict."""
     a = {**DEFAULTS, **(options or {})}
+    # Apply named presets onto the numeric render parameters.
+    if a.get("quality") in QUALITY:
+        a.update(QUALITY[a["quality"]])
+    if a.get("screen_size") in SCREEN_SIZES:
+        a["screen_frac"] = SCREEN_SIZES[a["screen_size"]]
     bundle = bundle.rstrip("/")
     rec = os.path.join(bundle, "recording")
     os.makedirs(work, exist_ok=True)
@@ -179,9 +200,14 @@ def prepare(
     cam_size = (cfg.get("defaultLayout") or {}).get("cameraSize") or cfg.get(
         "cameraSize", 0.25
     )
+    if a["camera_size"] in CAMERA_SIZES:
+        cam_size = CAMERA_SIZES[a["camera_size"]]
     Cw = _even(OUT_W * cam_size)
     Ch = _even(Cw * 9 / 16)
-    Rc = int(round(cfg.get("cameraRoundness", 0.2) * min(Cw, Ch) / 2))
+    roundness = cfg.get("cameraRoundness", 0.2)
+    if a["camera_roundness"] in CAMERA_ROUNDNESS:
+        roundness = CAMERA_ROUNDNESS[a["camera_roundness"]]
+    Rc = int(round(roundness * min(Cw, Ch) / 2))
     pp = cfg.get("cameraPositionPoint") or {"x": 1, "y": 1}
     M = a["webcam_margin"]
     CamX = M if pp["x"] == 0 else (OUT_W - Cw - M if pp["x"] == 1 else _even((OUT_W - Cw) / 2))
@@ -400,6 +426,21 @@ echo RENDER_EXIT=$?
 """
     )
 
+    # A single composited frame from the same graph, used for the live layout
+    # preview. Grabbing one frame is fast; it shows background, screen size,
+    # rounded corners, shadow, and the webcam bubble at its size/roundness.
+    open(f"{work}/preview.sh", "w").write(
+        f"""#!/bin/zsh
+set -e
+cd "{work}"
+{ffmpeg} -hide_banner -y \\
+  {input_args()} \\
+  -/filter_complex filter_full.txt \\
+  -map "[vout]" -an -frames:v 1 -update 1 -q:v 3 preview.jpg
+echo PREVIEW_EXIT=$?
+"""
+    )
+
     CLEAN = {
         "none": "",
         "loudnorm": "loudnorm=I=-16:TP=-1.5:LRA=11",
@@ -441,7 +482,7 @@ cd "{work}"
 echo MUX_EXIT=$?  OUTPUT="{output}"
 """
     )
-    for f in ("render_full.sh", "audio_build.sh", "mux.sh"):
+    for f in ("render_full.sh", "audio_build.sh", "mux.sh", "preview.sh"):
         os.chmod(f"{work}/{f}", 0o755)
 
     plan = {

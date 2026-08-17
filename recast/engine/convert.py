@@ -69,7 +69,12 @@ def resolve_bundle_dir(bundle_path: str, work_dir: str) -> str:
         )
 
     extract_root = os.path.join(work_dir, "bundle")
+    # Reuse a previous extraction if it already holds a valid project. This keeps
+    # repeated previews of the same upload fast (a recording zip can be large).
     if os.path.isdir(extract_root):
+        existing = _find_project_dir(extract_root)
+        if existing is not None:
+            return existing
         shutil.rmtree(extract_root, ignore_errors=True)
     os.makedirs(extract_root, exist_ok=True)
     with zipfile.ZipFile(bundle_path) as zf:
