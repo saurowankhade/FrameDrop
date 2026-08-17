@@ -34,6 +34,14 @@ webcam bubble, and normalized audio. No account, no watermark, no tracking.
   - macOS: `brew install ffmpeg`
   - Debian/Ubuntu: `apt install ffmpeg`
 
+### Screen Studio compatibility
+
+FrameDrop reads the `.screenstudio` bundle format produced by **Screen Studio 3.x**
+(tested against the current **3.7.x** release). Newer 3.x releases share the same
+bundle format and should work; a future major version may not.
+
+Screen Studio is macOS-only. The official site always serves the latest build, so
+the version you download may be newer than the one above:
 ## Quick start (clone & install)
 
 ```bash
