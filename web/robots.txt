@@ -1,4 +1,4 @@
-# robots.txt for FrameDrop — free & open-source ScreenStudio → MP4 converter
+# robots.txt for FrameDrop: free and open-source ScreenStudio to MP4 converter
 User-agent: *
 Allow: /
 Disallow: /api/

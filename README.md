@@ -1,12 +1,11 @@
-# FrameDrop — Free ScreenStudio to MP4 Converter (Open Source)
+# FrameDrop: Free ScreenStudio to MP4 Converter (Open Source)
 
 **FrameDrop** is a free, open-source, self-hostable web app that converts a
-**ScreenStudio (`.screenstudio`) recording into a polished, shareable MP4** —
-with background, rounded window, drop shadow, animated auto-zoom, cursor and
-click ripples, webcam bubble, and normalized audio. No account, no watermark,
-no tracking.
+**ScreenStudio (`.screenstudio`) recording into an MP4**. It adds your
+background, rounded window, drop shadow, auto-zoom, cursor and click ripples,
+webcam bubble, and normalized audio. No account, no watermark, no tracking.
 
-> Upload a `.zip` of your `.screenstudio` recording → download a rendered MP4.
+> Upload a `.zip` of your `.screenstudio` recording and download a rendered MP4.
 
 - **One page, no build step.** Plain HTML/CSS/JS frontend, FastAPI backend.
 - **Faithful render.** Reproduces the editor's composition and zoom timing.
@@ -50,7 +49,7 @@ source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # 4. Configure environment (optional but recommended)
-cp .env.example .env               # then edit .env — set RECAST_SITE_URL
+cp .env.example .env               # then edit .env and set RECAST_SITE_URL
 
 # 5. Run it
 python run.py
@@ -147,4 +146,4 @@ job finishes; the MP4 is kept for one hour and then swept.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

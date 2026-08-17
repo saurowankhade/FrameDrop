@@ -1,6 +1,6 @@
 # FrameDrop
 
-> FrameDrop is a free, open-source web app that converts a ScreenStudio (`.screenstudio`) screen recording into a polished, shareable MP4 — adding a background, animated auto-zoom, cursor highlights/click ripples, and webcam overlay. No account, no watermark; uploaded recordings are deleted automatically after conversion.
+> FrameDrop is a free, open-source web app that converts a ScreenStudio (`.screenstudio`) screen recording into an MP4. It adds a background, auto-zoom, cursor highlights and click ripples, and a webcam overlay. No account, no watermark. Uploaded recordings are deleted automatically after conversion.
 
 FrameDrop is aimed at people who record with [ScreenStudio](https://screen.studio) and want a rendered MP4 without opening the desktop editor. You upload a `.zip` of the `.screenstudio` recording folder and download the finished video.
 
