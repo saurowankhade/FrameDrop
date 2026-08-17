@@ -14,18 +14,91 @@ const download = $("download");
 const again = $("again");
 const warnList = $("warn");
 const errorBox = $("error");
+const previewWrap = $("preview-wrap");
+const previewImg = $("preview-img");
+const previewSpinner = $("preview-spinner");
+
+const OPTION_IDS = [
+  "opt-cursor", "opt-zooms", "opt-webcam", "opt-audio",
+  "opt-screen", "opt-camera-size", "opt-camera-roundness", "opt-quality",
+];
+
+// Map each option control to the query/form field the API expects.
+const OPTION_FIELDS = {
+  "opt-cursor": "cursor",
+  "opt-zooms": "zooms",
+  "opt-webcam": "webcam",
+  "opt-audio": "audio_cleanup",
+  "opt-screen": "screen_size",
+  "opt-camera-size": "camera_size",
+  "opt-camera-roundness": "camera_roundness",
+  "opt-quality": "quality",
+};
 
 let selectedFile = null;
+let uploadId = null;
 let poller = null;
+let previewTimer = null;
 
-function pickFile(f) {
+function currentOptions() {
+  const params = new URLSearchParams();
+  for (const id of OPTION_IDS) params.append(OPTION_FIELDS[id], $(id).value);
+  return params;
+}
+
+async function pickFile(f) {
   if (!f) return;
   selectedFile = f;
+  uploadId = null;
   chosen.textContent = f.name;
   chosen.hidden = false;
-  convertBtn.disabled = false;
   errorBox.hidden = true;
+  convertBtn.disabled = true;
+  convertBtn.textContent = "Preparing…";
+
+  // Upload immediately so we can render a live preview as options change.
+  const form = new FormData();
+  form.append("file", f);
+  try {
+    const res = await fetch("/api/upload", { method: "POST", body: form });
+    if (!res.ok) {
+      const detail = await res.json().catch(() => ({}));
+      throw new Error(detail.detail || "Upload failed.");
+    }
+    uploadId = (await res.json()).id;
+  } catch (err) {
+    showError(err.message || "Upload failed.");
+    return;
+  }
+
+  convertBtn.disabled = false;
+  convertBtn.textContent = "Convert to MP4";
+  refreshPreview();
 }
+
+function refreshPreview() {
+  if (!uploadId) return;
+  previewWrap.hidden = false;
+  previewSpinner.hidden = false;
+  const url = `/api/preview/${uploadId}?${currentOptions().toString()}&t=${Date.now()}`;
+  const img = new Image();
+  img.onload = () => {
+    previewImg.src = img.src;
+    previewSpinner.hidden = true;
+  };
+  img.onerror = () => {
+    previewSpinner.hidden = true;
+  };
+  img.src = url;
+}
+
+function schedulePreview() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(refreshPreview, 500);
+}
+
+// Re-render the preview shortly after any option changes.
+OPTION_IDS.forEach((id) => $(id).addEventListener("change", schedulePreview));
 
 $("pick").addEventListener("click", (e) => {
   e.stopPropagation();
@@ -64,7 +137,9 @@ function showError(msg) {
 
 function reset() {
   clearInterval(poller);
+  clearTimeout(previewTimer);
   selectedFile = null;
+  uploadId = null;
   fileInput.value = "";
   chosen.hidden = true;
   convertBtn.hidden = false;
@@ -75,39 +150,37 @@ function reset() {
   errorBox.hidden = true;
   warnList.innerHTML = "";
   fill.style.width = "0";
+  previewWrap.hidden = true;
+  previewImg.removeAttribute("src");
 }
 
 again.addEventListener("click", reset);
 
 convertBtn.addEventListener("click", async () => {
-  if (!selectedFile) return;
+  if (!uploadId) return;
   convertBtn.disabled = true;
   convertBtn.hidden = true;
   result.hidden = true;
   errorBox.hidden = true;
-  setProgress(0.02, "Uploading…");
+  setProgress(0.05, "Queued…");
 
   const form = new FormData();
-  form.append("file", selectedFile);
-  form.append("cursor", $("opt-cursor").value);
-  form.append("zooms", $("opt-zooms").value);
-  form.append("webcam", $("opt-webcam").value);
-  form.append("audio_cleanup", $("opt-audio").value);
+  form.append("job_id", uploadId);
+  for (const [field, value] of currentOptions()) form.append(field, value);
 
   let jobId;
   try {
     const res = await fetch("/api/convert", { method: "POST", body: form });
     if (!res.ok) {
       const detail = await res.json().catch(() => ({}));
-      throw new Error(detail.detail || "Upload failed.");
+      throw new Error(detail.detail || "Could not start the conversion.");
     }
     jobId = (await res.json()).id;
   } catch (err) {
-    showError(err.message || "Upload failed.");
+    showError(err.message || "Could not start the conversion.");
     return;
   }
 
-  setProgress(0.05, "Queued…");
   poller = setInterval(() => pollJob(jobId), 1000);
 });
 

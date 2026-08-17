@@ -46,9 +46,22 @@ def _render(filename: str) -> str:
         return f.read().replace("{{SITE_URL}}", SITE_URL)
 
 
+def _asset_version() -> str:
+    """A cache-busting token derived from the static assets' modification time,
+    so browsers refetch app.js / style.css whenever they change."""
+    latest = 0.0
+    for name in ("app.js", "style.css"):
+        try:
+            latest = max(latest, os.path.getmtime(os.path.join(WEB_DIR, name)))
+        except OSError:
+            pass
+    return str(int(latest))
+
+
 @app.get("/", response_class=HTMLResponse)
 def index() -> HTMLResponse:
-    return HTMLResponse(_render("index.html"))
+    html = _render("index.html").replace("{{ASSET_VER}}", _asset_version())
+    return HTMLResponse(html)
 
 
 @app.get("/robots.txt", response_class=Response)
@@ -88,24 +101,40 @@ def health() -> JSONResponse:
     return JSONResponse({"ok": not missing, "missing": missing})
 
 
-@app.post("/api/convert")
-async def convert_endpoint(
-    file: UploadFile,
-    cursor: str = Form("auto"),
-    zooms: str = Form("on"),
-    webcam: str = Form("auto"),
-    audio_cleanup: str = Form("loudnorm"),
-) -> JSONResponse:
-    name = file.filename or "recording.zip"
-    options = {
-        "cursor": cursor if cursor in ("auto", "on", "off") else "auto",
-        "zooms": zooms if zooms in ("on", "off") else "on",
-        "webcam": webcam if webcam in ("auto", "on", "off") else "auto",
-        "audio_cleanup": audio_cleanup
-        if audio_cleanup in ("none", "loudnorm", "voice")
-        else "loudnorm",
+def _pick(value: str, allowed: tuple[str, ...], default: str) -> str:
+    return value if value in allowed else default
+
+
+def parse_options(
+    cursor: str,
+    zooms: str,
+    webcam: str,
+    audio_cleanup: str,
+    camera_size: str,
+    camera_roundness: str,
+    screen_size: str,
+    quality: str,
+) -> dict:
+    """Validate raw option values into a clean options dict for the engine."""
+    return {
+        "cursor": _pick(cursor, ("auto", "on", "off"), "auto"),
+        "zooms": _pick(zooms, ("on", "off"), "on"),
+        "webcam": _pick(webcam, ("auto", "on", "off"), "auto"),
+        "audio_cleanup": _pick(audio_cleanup, ("none", "loudnorm", "voice"), "loudnorm"),
+        "camera_size": _pick(camera_size, ("auto", "small", "medium", "large"), "auto"),
+        "camera_roundness": _pick(
+            camera_roundness, ("auto", "square", "rounded", "circle"), "auto"
+        ),
+        "screen_size": _pick(screen_size, ("auto", "small", "medium", "large"), "auto"),
+        "quality": _pick(quality, ("high", "balanced", "small"), "balanced"),
     }
-    job = jobs.create(name, options)
+
+
+@app.post("/api/upload")
+async def upload_endpoint(file: UploadFile) -> JSONResponse:
+    """Receive a recording .zip and hold it for preview + conversion."""
+    name = file.filename or "recording.zip"
+    job = jobs.create(name)
 
     size = 0
     try:
@@ -124,6 +153,62 @@ async def convert_endpoint(
     finally:
         await file.close()
 
+    return JSONResponse({"id": job.id})
+
+
+@app.get("/api/preview/{job_id}")
+def preview_endpoint(
+    job_id: str,
+    cursor: str = "auto",
+    zooms: str = "on",
+    webcam: str = "auto",
+    audio_cleanup: str = "loudnorm",
+    camera_size: str = "auto",
+    camera_roundness: str = "auto",
+    screen_size: str = "auto",
+    quality: str = "balanced",
+) -> FileResponse:
+    """Render and return a single preview frame for the current options."""
+    job = jobs.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Upload not found.")
+    options = parse_options(
+        cursor, zooms, webcam, audio_cleanup,
+        camera_size, camera_roundness, screen_size, quality,
+    )
+    try:
+        image_path = jobs.preview(job, options)
+    except Exception as exc:  # surface a readable error to the UI
+        raise HTTPException(status_code=422, detail=str(exc))
+    return FileResponse(
+        image_path,
+        media_type="image/jpeg",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@app.post("/api/convert")
+def convert_endpoint(
+    job_id: str = Form(...),
+    cursor: str = Form("auto"),
+    zooms: str = Form("on"),
+    webcam: str = Form("auto"),
+    audio_cleanup: str = Form("loudnorm"),
+    camera_size: str = Form("auto"),
+    camera_roundness: str = Form("auto"),
+    screen_size: str = Form("auto"),
+    quality: str = Form("balanced"),
+) -> JSONResponse:
+    """Start converting a previously uploaded recording with the given options."""
+    job = jobs.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Upload not found. Please re-upload.")
+    if job.state != "queued":
+        raise HTTPException(status_code=409, detail="This recording is already converting.")
+    job.options = parse_options(
+        cursor, zooms, webcam, audio_cleanup,
+        camera_size, camera_roundness, screen_size, quality,
+    )
     jobs.start(job)
     return JSONResponse({"id": job.id})
 

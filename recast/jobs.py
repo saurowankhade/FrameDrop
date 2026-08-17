@@ -17,10 +17,13 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Optional
 
-from .engine import convert
+from .engine import convert, render_preview
 
 # States: queued -> running -> done | error
 RETENTION_SECONDS = 60 * 60  # keep finished jobs (and their MP4) for one hour
+# Uploaded-but-never-converted jobs (used only for live preview) are swept after
+# this idle window so abandoned uploads do not accumulate.
+UPLOAD_IDLE_SECONDS = 60 * 60
 
 
 @dataclass
@@ -59,6 +62,9 @@ class JobManager:
         self._jobs: dict[str, Job] = {}
         self._lock = threading.Lock()
         self._pool = ThreadPoolExecutor(max_workers=max_workers)
+        # Serialise previews per job: one prepare()/ffmpeg pass writes shared
+        # files in the work dir, so overlapping previews must not interleave.
+        self._preview_locks: dict[str, threading.Lock] = {}
 
     def create(self, name: str, options: Optional[dict] = None) -> Job:
         job_id = uuid.uuid4().hex[:12]
@@ -79,6 +85,19 @@ class JobManager:
 
     def start(self, job: Job) -> None:
         self._pool.submit(self._run, job)
+
+    def preview(self, job: Job, options: dict) -> str:
+        """Render a single preview frame for the job's uploaded recording.
+
+        Runs synchronously and returns the path to the JPEG. Only one preview
+        per job runs at a time.
+        """
+        if job.state in ("running", "done"):
+            raise RuntimeError("This recording is already being converted.")
+        with self._lock:
+            lock = self._preview_locks.setdefault(job.id, threading.Lock())
+        with lock:
+            return render_preview(job.input_path, job.work_dir, options)
 
     def get(self, job_id: str) -> Optional[Job]:
         self._sweep()
@@ -118,9 +137,17 @@ class JobManager:
         expired = []
         with self._lock:
             for jid, job in list(self._jobs.items()):
-                if job.finished_at and now - job.finished_at > RETENTION_SECONDS:
+                done_expired = job.finished_at and now - job.finished_at > RETENTION_SECONDS
+                # Uploaded but never converted (still "queued") and gone idle.
+                upload_expired = (
+                    job.state == "queued"
+                    and job.finished_at is None
+                    and now - job.created_at > UPLOAD_IDLE_SECONDS
+                )
+                if done_expired or upload_expired:
                     expired.append(jid)
                     del self._jobs[jid]
+                    self._preview_locks.pop(jid, None)
         for jid in expired:
             shutil.rmtree(os.path.join(self.root, jid), ignore_errors=True)
 

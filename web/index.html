@@ -78,7 +78,7 @@
   }
   </script>
 
-  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/style.css?v={{ASSET_VER}}" />
 </head>
 <body>
   <main class="wrap">
@@ -95,6 +95,14 @@
         <button type="button" class="btn ghost" id="pick">Choose file</button>
         <p class="chosen" id="chosen" hidden></p>
       </div>
+
+      <figure class="preview" id="preview-wrap" hidden>
+        <div class="preview-frame">
+          <img id="preview-img" alt="Preview of your video layout" />
+          <span class="preview-spinner" id="preview-spinner" hidden></span>
+        </div>
+        <figcaption class="preview-note">Live preview. Zoom animation and audio are applied in the final MP4.</figcaption>
+      </figure>
 
       <details class="opts">
         <summary>Options</summary>
@@ -124,6 +132,37 @@
               <option value="loudnorm" selected>Normalize</option>
               <option value="voice">Voice cleanup</option>
               <option value="none">Leave as-is</option>
+            </select>
+          </label>
+          <label>Screen size
+            <select id="opt-screen">
+              <option value="auto" selected>Auto</option>
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </label>
+          <label>Camera size
+            <select id="opt-camera-size">
+              <option value="auto" selected>Auto</option>
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </label>
+          <label>Camera corners
+            <select id="opt-camera-roundness">
+              <option value="auto" selected>Auto</option>
+              <option value="square">Square</option>
+              <option value="rounded">Rounded</option>
+              <option value="circle">Circle</option>
+            </select>
+          </label>
+          <label>Quality
+            <select id="opt-quality">
+              <option value="balanced" selected>Balanced</option>
+              <option value="high">High</option>
+              <option value="small">Smaller file</option>
             </select>
           </label>
         </div>
@@ -205,6 +244,6 @@
     </footer>
   </main>
 
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v={{ASSET_VER}}"></script>
 </body>
 </html>
