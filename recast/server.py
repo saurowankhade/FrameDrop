@@ -28,13 +28,18 @@ from .jobs import JobManager
 
 WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 
-# Public site URL, used for canonical links, Open Graph tags, sitemap, and
-# llms.txt. Set RECAST_SITE_URL to your real domain in production.
-SITE_URL = os.environ.get("RECAST_SITE_URL", "https://framedrop.app").rstrip("/")
+def _env(name: str, default: str) -> str:
+    """Read FRAMEDROP_<name>, falling back to the legacy RECAST_<name>."""
+    return os.environ.get(f"FRAMEDROP_{name}") or os.environ.get(f"RECAST_{name}", default)
 
-# Max upload size in bytes (default 4 GB; override with RECAST_MAX_UPLOAD).
-MAX_UPLOAD = int(os.environ.get("RECAST_MAX_UPLOAD", 4 * 1024 * 1024 * 1024))
-MAX_WORKERS = int(os.environ.get("RECAST_MAX_WORKERS", 2))
+
+# Public site URL, used for canonical links, Open Graph tags, sitemap, and
+# llms.txt. Set FRAMEDROP_SITE_URL to your real domain in production.
+SITE_URL = _env("SITE_URL", "https://framedrop.devtools4me.com").rstrip("/")
+
+# Max upload size in bytes (default 4 GB; override with FRAMEDROP_MAX_UPLOAD).
+MAX_UPLOAD = int(_env("MAX_UPLOAD", str(4 * 1024 * 1024 * 1024)))
+MAX_WORKERS = int(_env("MAX_WORKERS", "2"))
 
 app = FastAPI(title="FrameDrop", docs_url=None, redoc_url=None)
 jobs = JobManager(max_workers=MAX_WORKERS)

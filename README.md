@@ -49,7 +49,7 @@ source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # 4. Configure environment (optional but recommended)
-cp .env.example .env               # then edit .env and set RECAST_SITE_URL
+cp .env.example .env               # then edit .env and set FRAMEDROP_SITE_URL
 
 # 5. Run it
 python run.py
@@ -63,7 +63,7 @@ Variables in `.env` are loaded automatically. See [Configuration](#configuration
 ```bash
 docker build -t framedrop .
 docker run --rm -p 8000:8000 \
-  -e RECAST_SITE_URL=https://yourdomain.com \
+  -e FRAMEDROP_SITE_URL=https://yourdomain.com \
   framedrop
 # open http://localhost:8000
 ```
@@ -77,13 +77,16 @@ are shown below.
 
 | Env var              | Default                 | Meaning                                                        |
 | -------------------- | ----------------------- | -------------------------------------------------------------- |
-| `RECAST_HOST`        | `127.0.0.1`             | Bind address (`0.0.0.0` to expose / in Docker).                |
-| `RECAST_PORT`        | `8000`                  | Port to listen on.                                             |
-| `RECAST_SITE_URL`    | `https://framedrop.app` | Public URL (no trailing slash) for canonical/OG/sitemap/llms.  |
-| `RECAST_MAX_UPLOAD`  | `4294967296` (4 GiB)    | Max upload size in bytes.                                       |
-| `RECAST_MAX_WORKERS` | `2`                     | Concurrent conversions. Scale to your CPU cores.               |
+| `FRAMEDROP_HOST`        | `127.0.0.1`                       | Bind address (`0.0.0.0` to expose / in Docker).               |
+| `FRAMEDROP_PORT`        | `8000`                            | Port to listen on (Render's `PORT` is used automatically).    |
+| `FRAMEDROP_SITE_URL`    | `https://framedrop.devtools4me.com` | Public URL (no trailing slash) for canonical/OG/sitemap/llms. |
+| `FRAMEDROP_MAX_UPLOAD`  | `4294967296` (4 GiB)              | Max upload size in bytes.                                      |
+| `FRAMEDROP_MAX_WORKERS` | `2`                               | Concurrent conversions. Scale to your CPU cores.              |
 
-> **Set `RECAST_SITE_URL` to your real domain in production.** It is substituted
+> Legacy `RECAST_*` names are still honoured as a fallback, so existing
+> deployments keep working.
+
+> **Set `FRAMEDROP_SITE_URL` to your real domain in production.** It is substituted
 > into `robots.txt`, `sitemap.xml`, `llms.txt`, and every canonical / Open Graph
 > tag so search engines and social previews use the correct absolute URLs.
 
@@ -104,7 +107,7 @@ the site root with correct content types:
 The homepage `<head>` also includes a meta description, keywords, canonical
 link, Open Graph and Twitter Card tags, and JSON-LD structured data
 (`SoftwareApplication` + `FAQPage`). All absolute URLs come from
-`RECAST_SITE_URL`, so set it correctly before you deploy.
+`FRAMEDROP_SITE_URL`, so set it correctly before you deploy.
 
 ## How a user makes the upload
 
@@ -142,7 +145,7 @@ job finishes; the MP4 is kept for one hour and then swept.
 - macOS "system wallpaper" backgrounds aren't shipped inside a recording, so the
   project gradient/color is used instead.
 - Large recordings mean large uploads. For a public deployment, put a size limit
-  and a reverse proxy in front, and scale `RECAST_MAX_WORKERS` to your CPU.
+  and a reverse proxy in front, and scale `FRAMEDROP_MAX_WORKERS` to your CPU.
 
 ## License
 
