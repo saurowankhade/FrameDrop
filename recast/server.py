@@ -1,4 +1,4 @@
-"""HTTP server for recast.
+"""HTTP server for FrameDrop.
 
 Serves the single-page frontend and a small JSON API:
   POST /api/convert          upload a recording (.zip), start a job -> {id}
@@ -12,8 +12,15 @@ from __future__ import annotations
 import os
 import shutil
 
+try:  # Load variables from a local .env file if python-dotenv is available.
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
+
 from fastapi import FastAPI, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from .engine import check_dependencies
@@ -21,18 +28,58 @@ from .jobs import JobManager
 
 WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
 
+# Public site URL, used for canonical links, Open Graph tags, sitemap, and
+# llms.txt. Set RECAST_SITE_URL to your real domain in production.
+SITE_URL = os.environ.get("RECAST_SITE_URL", "https://framedrop.app").rstrip("/")
+
 # Max upload size in bytes (default 4 GB; override with RECAST_MAX_UPLOAD).
 MAX_UPLOAD = int(os.environ.get("RECAST_MAX_UPLOAD", 4 * 1024 * 1024 * 1024))
 MAX_WORKERS = int(os.environ.get("RECAST_MAX_WORKERS", 2))
 
-app = FastAPI(title="recast", docs_url=None, redoc_url=None)
+app = FastAPI(title="FrameDrop", docs_url=None, redoc_url=None)
 jobs = JobManager(max_workers=MAX_WORKERS)
+
+
+def _render(filename: str) -> str:
+    """Read a web asset and substitute the {{SITE_URL}} placeholder."""
+    with open(os.path.join(WEB_DIR, filename), encoding="utf-8") as f:
+        return f.read().replace("{{SITE_URL}}", SITE_URL)
 
 
 @app.get("/", response_class=HTMLResponse)
 def index() -> HTMLResponse:
-    with open(os.path.join(WEB_DIR, "index.html"), encoding="utf-8") as f:
-        return HTMLResponse(f.read())
+    return HTMLResponse(_render("index.html"))
+
+
+@app.get("/robots.txt", response_class=Response)
+def robots() -> Response:
+    return Response(_render("robots.txt"), media_type="text/plain")
+
+
+@app.get("/sitemap.xml", response_class=Response)
+def sitemap() -> Response:
+    return Response(_render("sitemap.xml"), media_type="application/xml")
+
+
+@app.get("/llms.txt", response_class=Response)
+def llms() -> Response:
+    return Response(_render("llms.txt"), media_type="text/plain")
+
+
+@app.get("/manifest.webmanifest", response_class=Response)
+def manifest() -> Response:
+    return Response(_render("manifest.webmanifest"), media_type="application/manifest+json")
+
+
+@app.get("/favicon.svg", response_class=Response)
+def favicon() -> Response:
+    with open(os.path.join(WEB_DIR, "favicon.svg"), encoding="utf-8") as f:
+        return Response(f.read(), media_type="image/svg+xml")
+
+
+@app.get("/og-image.png")
+def og_image() -> FileResponse:
+    return FileResponse(os.path.join(WEB_DIR, "og-image.png"), media_type="image/png")
 
 
 @app.get("/api/health")

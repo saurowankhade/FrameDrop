@@ -1,0 +1,18 @@
+{
+  "name": "FrameDrop — ScreenStudio to MP4 Converter",
+  "short_name": "FrameDrop",
+  "description": "Free & open-source tool to convert a ScreenStudio recording into a polished, shareable MP4.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0d12",
+  "theme_color": "#0b0d12",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

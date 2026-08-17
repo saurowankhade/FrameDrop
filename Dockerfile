@@ -14,7 +14,8 @@ COPY recast ./recast
 COPY web ./web
 
 ENV RECAST_HOST=0.0.0.0 \
-    RECAST_PORT=8000
+    RECAST_PORT=8000 \
+    RECAST_SITE_URL=https://framedrop.app
 
 EXPOSE 8000
 
