@@ -1,6 +1,5 @@
 # FrameDrop: Free ScreenStudio to MP4 Converter (Open Source)
 
-[![CI](https://github.com/saurowankhade/FrameDrop/actions/workflows/ci.yml/badge.svg)](https://github.com/saurowankhade/FrameDrop/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](requirements.txt)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
