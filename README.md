@@ -11,6 +11,8 @@ webcam bubble, and normalized audio. No account, no watermark, no tracking.
 
 > Upload a `.zip` of your `.screenstudio` recording and download a rendered MP4.
 
+![FrameDrop screenshot](docs/screenshot.png)
+
 - **One page, no build step.** Plain HTML/CSS/JS frontend, FastAPI backend.
 - **Faithful render.** Reproduces the editor's composition and zoom timing.
 - **Privacy-friendly.** Uploads are processed server-side and deleted after conversion.
