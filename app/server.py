@@ -36,10 +36,6 @@ def _env(name: str, default: str) -> str:
     return os.environ.get(f"FRAMEDROP_{name}") or os.environ.get(f"RECAST_{name}", default)
 
 
-# Public site URL, used for canonical links, Open Graph tags, sitemap, and
-# llms.txt. Set FRAMEDROP_SITE_URL to your real domain in production.
-SITE_URL = _env("SITE_URL", "https://framedrop.devtools4me.com").rstrip("/")
-
 # Max upload size in bytes (default 4 GB; override with FRAMEDROP_MAX_UPLOAD).
 MAX_UPLOAD = int(_env("MAX_UPLOAD", str(4 * 1024 * 1024 * 1024)))
 MAX_WORKERS = int(_env("MAX_WORKERS", "2"))
@@ -49,9 +45,8 @@ jobs = JobManager(max_workers=MAX_WORKERS)
 
 
 def _render(filename: str) -> str:
-    """Read a web asset and substitute the {{SITE_URL}} placeholder."""
     with open(os.path.join(WEB_DIR, filename), encoding="utf-8") as f:
-        return f.read().replace("{{SITE_URL}}", SITE_URL)
+        return f.read()
 
 
 def _asset_version() -> str:
@@ -72,21 +67,6 @@ def index() -> HTMLResponse:
     return HTMLResponse(html)
 
 
-@app.get("/robots.txt", response_class=Response)
-def robots() -> Response:
-    return Response(_render("robots.txt"), media_type="text/plain")
-
-
-@app.get("/sitemap.xml", response_class=Response)
-def sitemap() -> Response:
-    return Response(_render("sitemap.xml"), media_type="application/xml")
-
-
-@app.get("/llms.txt", response_class=Response)
-def llms() -> Response:
-    return Response(_render("llms.txt"), media_type="text/plain")
-
-
 @app.get("/manifest.webmanifest", response_class=Response)
 def manifest() -> Response:
     return Response(_render("manifest.webmanifest"), media_type="application/manifest+json")
@@ -96,11 +76,6 @@ def manifest() -> Response:
 def favicon() -> Response:
     with open(os.path.join(WEB_DIR, "favicon.svg"), encoding="utf-8") as f:
         return Response(f.read(), media_type="image/svg+xml")
-
-
-@app.get("/og-image.png")
-def og_image() -> FileResponse:
-    return FileResponse(os.path.join(WEB_DIR, "og-image.png"), media_type="image/png")
 
 
 @app.get("/api/health")

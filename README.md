@@ -1,5 +1,10 @@
 # FrameDrop: Free ScreenStudio to MP4 Converter (Open Source)
 
+[![CI](https://github.com/saurowankhade/FrameDrop/actions/workflows/ci.yml/badge.svg)](https://github.com/saurowankhade/FrameDrop/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](requirements.txt)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
 **FrameDrop** is a free, open-source, self-hostable web app that converts a
 **ScreenStudio (`.screenstudio`) recording into an MP4**. It adds your
 background, rounded window, drop shadow, auto-zoom, cursor and click ripples,
@@ -10,8 +15,6 @@ webcam bubble, and normalized audio. No account, no watermark, no tracking.
 - **One page, no build step.** Plain HTML/CSS/JS frontend, FastAPI backend.
 - **Faithful render.** Reproduces the editor's composition and zoom timing.
 - **Privacy-friendly.** Uploads are processed server-side and deleted after conversion.
-- **SEO-ready.** Ships `robots.txt`, `sitemap.xml`, `llms.txt`, a web manifest,
-  Open Graph / Twitter cards, and JSON-LD structured data.
 - **Open source (MIT).**
 
 ## Table of contents
@@ -20,11 +23,11 @@ webcam bubble, and normalized audio. No account, no watermark, no tracking.
 - [Quick start (clone & install)](#quick-start-clone--install)
 - [Run with Docker](#run-with-docker)
 - [Configuration](#configuration)
-- [SEO](#seo)
 - [How a user makes the upload](#how-a-user-makes-the-upload)
 - [API](#api)
 - [How it works](#how-it-works)
 - [Notes and limits](#notes-and-limits)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## Requirements
@@ -41,13 +44,14 @@ FrameDrop reads the `.screenstudio` bundle format produced by **Screen Studio 3.
 bundle format and should work; a future major version may not.
 
 Screen Studio is macOS-only. The official site always serves the latest build, so
-the version you download may be newer than the one above:
+the version you download may be newer than the one tested above.
+
 ## Quick start (clone & install)
 
 ```bash
-# 1. Clone the repository (replace with your fork/repo URL)
-git clone https://github.com/youruser/framedrop.git
-cd framedrop
+# 1. Clone the repository (replace with your fork's URL if you forked it)
+git clone https://github.com/saurowankhade/FrameDrop.git
+cd FrameDrop
 
 # 2. Create and activate a virtual environment
 python3 -m venv .venv
@@ -56,8 +60,8 @@ source .venv/bin/activate          # Windows: .venv\Scripts\activate
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Configure environment (optional but recommended)
-cp .env.example .env               # then edit .env and set FRAMEDROP_SITE_URL
+# 4. Configure environment (optional; sensible defaults are built in)
+cp .env.example .env
 
 # 5. Run it
 python run.py
@@ -70,9 +74,7 @@ Variables in `.env` are loaded automatically. See [Configuration](#configuration
 
 ```bash
 docker build -t framedrop .
-docker run --rm -p 8000:8000 \
-  -e FRAMEDROP_SITE_URL=https://yourdomain.com \
-  framedrop
+docker run --rm -p 8000:8000 framedrop
 # open http://localhost:8000
 ```
 
@@ -83,39 +85,14 @@ The image installs `ffmpeg` for you.
 Copy `.env.example` to `.env` and adjust. All variables are optional; defaults
 are shown below.
 
-| Env var              | Default                 | Meaning                                                        |
-| -------------------- | ----------------------- | -------------------------------------------------------------- |
-| `FRAMEDROP_HOST`        | `127.0.0.1`                       | Bind address (`0.0.0.0` to expose / in Docker).               |
-| `FRAMEDROP_PORT`        | `8000`                            | Port to listen on (Render's `PORT` is used automatically).    |
-| `FRAMEDROP_SITE_URL`    | `https://framedrop.devtools4me.com` | Public URL (no trailing slash) for canonical/OG/sitemap/llms. |
-| `FRAMEDROP_MAX_UPLOAD`  | `4294967296` (4 GiB)              | Max upload size in bytes.                                      |
-| `FRAMEDROP_MAX_WORKERS` | `2`                               | Concurrent conversions. Scale to your CPU cores.              |
+| Env var                 | Default        | Meaning                                                     |
+| ------------------------ | -------------- | ------------------------------------------------------------ |
+| `FRAMEDROP_HOST`         | `127.0.0.1`    | Bind address (`0.0.0.0` to expose / in Docker).              |
+| `FRAMEDROP_PORT`         | `8000`         | Port to listen on.                                           |
+| `FRAMEDROP_MAX_UPLOAD`   | `4294967296` (4 GiB) | Max upload size in bytes.                              |
+| `FRAMEDROP_MAX_WORKERS`  | `2`            | Concurrent conversions. Scale to your CPU cores.              |
 
-> Legacy `RECAST_*` names are still honoured as a fallback, so existing
-> deployments keep working.
-
-> **Set `FRAMEDROP_SITE_URL` to your real domain in production.** It is substituted
-> into `robots.txt`, `sitemap.xml`, `llms.txt`, and every canonical / Open Graph
-> tag so search engines and social previews use the correct absolute URLs.
-
-## SEO
-
-FrameDrop is search- and share-ready out of the box. The following are served at
-the site root with correct content types:
-
-| Path                    | What it is                                                        |
-| ----------------------- | ---------------------------------------------------------------- |
-| `/robots.txt`           | Crawl rules; allows AI crawlers; links the sitemap.              |
-| `/sitemap.xml`          | XML sitemap.                                                     |
-| `/llms.txt`             | Plain-text summary for LLMs / AI assistants.                     |
-| `/manifest.webmanifest` | PWA / installability metadata.                                   |
-| `/favicon.svg`          | Site icon.                                                       |
-| `/og-image.png`         | 1200×630 social share card.                                      |
-
-The homepage `<head>` also includes a meta description, keywords, canonical
-link, Open Graph and Twitter Card tags, and JSON-LD structured data
-(`SoftwareApplication` + `FAQPage`). All absolute URLs come from
-`FRAMEDROP_SITE_URL`, so set it correctly before you deploy.
+> Legacy `RECAST_*` names are still honoured as a fallback.
 
 ## How a user makes the upload
 
@@ -128,12 +105,14 @@ before a browser can upload it:
 
 ## API
 
-| Method | Path                      | Purpose                                 |
-| ------ | ------------------------- | --------------------------------------- |
-| POST   | `/api/convert`            | Upload a `.zip`, start a job → `{ id }` |
-| GET    | `/api/jobs/{id}`          | Poll job status and progress            |
-| GET    | `/api/jobs/{id}/download` | Download the finished MP4               |
-| GET    | `/api/health`             | Dependency check                        |
+| Method | Path                      | Purpose                                       |
+| ------ | ------------------------- | ---------------------------------------------- |
+| POST   | `/api/upload`             | Upload a `.zip`, hold it for preview → `{ id }` |
+| GET    | `/api/preview/{id}`       | Render one preview frame for the current options |
+| POST   | `/api/convert`            | Start converting an uploaded recording → `{ id }` |
+| GET    | `/api/jobs/{id}`          | Poll job status and progress                  |
+| GET    | `/api/jobs/{id}/download` | Download the finished MP4                     |
+| GET    | `/api/health`             | Dependency check                              |
 
 ## How it works
 
@@ -154,6 +133,14 @@ job finishes; the MP4 is kept for one hour and then swept.
   project gradient/color is used instead.
 - Large recordings mean large uploads. For a public deployment, put a size limit
   and a reverse proxy in front, and scale `FRAMEDROP_MAX_WORKERS` to your CPU.
+
+## Contributing
+
+Bug reports, feature ideas, and PRs are welcome. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for how to get set up, and
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for project norms. Found a security
+issue? Please follow [SECURITY.md](SECURITY.md) instead of opening a public
+issue.
 
 ## License
 

@@ -57,7 +57,7 @@ class Job:
 
 class JobManager:
     def __init__(self, root: Optional[str] = None, max_workers: int = 2):
-        self.root = root or os.path.join(tempfile.gettempdir(), "recast-jobs")
+        self.root = root or os.path.join(tempfile.gettempdir(), "framedrop-jobs")
         os.makedirs(self.root, exist_ok=True)
         self._jobs: dict[str, Job] = {}
         self._lock = threading.Lock()

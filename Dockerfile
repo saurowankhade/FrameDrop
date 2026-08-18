@@ -10,13 +10,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY recast ./recast
+COPY app ./app
 COPY web ./web
 
-ENV FRAMEDROP_HOST=0.0.0.0 \
-    FRAMEDROP_SITE_URL=https://framedrop.devtools4me.com
+ENV FRAMEDROP_HOST=0.0.0.0
 
 EXPOSE 8000
 
-# Shell form so Render's injected $PORT is honoured (defaults to 8000 locally).
-CMD uvicorn recast.server:app --host 0.0.0.0 --port ${PORT:-8000}
+# Shell form so the injected $PORT is honoured (defaults to 8000 locally).
+CMD uvicorn app.server:app --host 0.0.0.0 --port ${PORT:-8000}

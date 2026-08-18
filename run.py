@@ -21,4 +21,4 @@ if __name__ == "__main__":
     host = _env("HOST", "127.0.0.1")
     # Hosts like Render inject their own PORT; honour it when our vars are unset.
     port = int(_env("PORT") or os.environ.get("PORT", "8000"))
-    uvicorn.run("recast.server:app", host=host, port=port, reload=False)
+    uvicorn.run("app.server:app", host=host, port=port, reload=False)

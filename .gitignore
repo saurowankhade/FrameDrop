@@ -4,5 +4,5 @@ __pycache__/
 venv/
 .env
 *.mp4
-recast-jobs/
+framedrop-jobs/
 .DS_Store
